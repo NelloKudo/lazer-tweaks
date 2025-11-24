@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+# Setup XDG vars.
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export BINDIR="${BINDIR:-$HOME/.local/bin}"
+
+# Editor for the config. file
+export EDITOR="${EDITOR:-nano}"
+
+# Default env. vars
+export PIPEWIRE_ALSA="${PIPEWIRE_ALSA:-{ alsa.period-bytes=1024 alsa.periods=3 }}"
+export SDL_VIDEO_DOUBLE_BUFFER=${SDL_VIDEO_DOUBLE_BUFFER:-1}
+
+########################################################
+
+print()
+{
+    echo -e "\033[1;32mScript:\033[0m $*"
+}
+
+readConfig()
+{
+    # Source config.cfg for user overrides
+    set -a
+    source $XDG_DATA_HOME/lazertweaks/config.cfg 2>/dev/null
+    set +a
+}
+
+wmTweaks()
+{
+    # Add application.process.id for Discord audio streaming
+    PIPEWIRE_ALSA="${PIPEWIRE_ALSA%\}}"
+    PIPEWIRE_ALSA="${PIPEWIRE_ALSA} application.process.id='\"$$\"' }"
+    export PIPEWIRE_ALSA
+
+    # Add WM_NAME manually to be detected by Discord
+    nohup setsid setsid /bin/sh -c \
+        'sleep 3; wid="$(xdotool search --all --class osu\!)"; [ -n "$wid" ] && xprop -id "$wid" -f WM_NAME 8s -set WM_NAME "osu\!"' \
+        >/dev/null 2>&1 &
+}
+
+launchOsu()
+{
+    readConfig
+    wmTweaks
+
+    print "Launching osu!lazer.."
+    exec $PRE_LAUNCH_ARGS "$XDG_DATA_HOME/lazertweaks/osu.AppImage"
+}
+
+########################################################
+
+case $1 in
+    '--config')
+        exec "$EDITOR" "$XDG_DATA_HOME/lazertweaks/config.cfg"
+    ;;
+
+    '--remove')
+        read -p "Are you sure you want to remove $XDG_DATA_HOME/lazertweaks? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            rm -rf "$XDG_DATA_HOME/lazertweaks"
+            print "Removed $XDG_DATA_HOME/lazertweaks."
+
+            rm "$BINDIR/lazertweaks"
+            print "Removed $BINDIR/lazertweaks."
+        else
+            print "Cancelled."
+        fi
+    ;;
+
+    *)
+        launchOsu
+    ;;
+esac
