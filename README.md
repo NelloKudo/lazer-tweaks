@@ -6,7 +6,7 @@ osu!lazer installer for Linux, with additional tweaks!
 
 ## Features
 - Installs the latest AppImage (with automatic updates support) and provides a .desktop launcher
-- Automatically some PipeWire environmental variables for low-latency audio
+- Automatically sets some PipeWire environmental variables for low-latency audio
 - Includes fixes for osu!lazer not showing when streaming single applications on Discord, as both window or audio source
 - Provides a list of useful environmental variables (SDL, PipeWire..) for the game in the configuration file
   - Can be opened with `lazertweaks --config`
