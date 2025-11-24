@@ -6,8 +6,10 @@ export BINDIR="${BINDIR:-$HOME/.local/bin}"
 
 # Mirrors
 OSULINK="https://github.com/ppy/osu/releases/latest/download/osu.AppImage"
-TACHYONLINK="https://github.com/ppy/osu/releases/download/2025.1121.0-tachyon/osu.AppImage"
 ICONLINK="https://raw.githubusercontent.com/ppy/osu/26da75ecfbb6a928b057c1286d04b54179a11dc7/assets/lazer.png"
+
+# GitHub API endpoint for releases
+GITHUB_API="https://api.github.com/repos/ppy/osu/releases"
 
 print()
 {
@@ -56,6 +58,11 @@ initialSetup()
         errorExit "curl is needed to download the game, please install it with your package manager."
     fi
 
+    # Check for jq dependency
+    if ! command -v jq &> /dev/null; then
+        errorExit "jq is needed to parse GitHub API responses, please install it with your package manager."
+    fi
+
     print "Preparing lazer-tweaks installer.."
 
     # Create configuration directory
@@ -68,12 +75,34 @@ initialSetup()
     curl -Lo "$XDG_DATA_HOME/lazertweaks/osu.png" "$ICONLINK"
 }
 
+getTachyonRelease()
+{
+    # Fetch the latest tachyon release from GitHub API
+    local response
+    response=$(curl -s "$GITHUB_API")
+
+    # Extract the first tachyon release asset URL
+    local tachyon_url
+    tachyon_url=$(echo "$response" | jq -r '.[] | select(.tag_name | contains("tachyon")) | .assets[] | select(.name == "osu.AppImage") | .browser_download_url' | head -n 1)
+
+    if [ -z "$tachyon_url" ] || [ "$tachyon_url" = "null" ]; then
+        return 1
+    fi
+
+    echo "$tachyon_url"
+}
+
 downloadOsu()
 {
     # Install tachyon release with --tachyon
     local GAMELINK
     if [ "$1" = "--tachyon" ]; then
-        GAMELINK="$TACHYONLINK"
+        print "Detecting latest tachyon release.."
+        GAMELINK=$(getTachyonRelease)
+        if [ $? -ne 0 ] || [ -z "$GAMELINK" ]; then
+            errorExit "Failed to detect latest tachyon release from GitHub API."
+        fi
+        print "Found tachyon release: $GAMELINK"
     else
         GAMELINK="$OSULINK"
     fi
@@ -101,7 +130,7 @@ Categories=Game;" | tee "$XDG_DATA_HOME/applications/lazertweaks.desktop" >/dev/
 }
 
 initialSetup
-downloadOsu
+downloadOsu "$@"
 createDesktopEntry
 
 print "Installer has finished, run osu! using lazertweaks or from the application menu."
