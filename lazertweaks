@@ -39,6 +39,21 @@ wmTweaks()
         >/dev/null 2>&1 &
 }
 
+removeScript()
+{
+    read -p "Are you sure you want to remove $XDG_DATA_HOME/lazertweaks? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -rf "$XDG_DATA_HOME/lazertweaks"
+        print "Removed $XDG_DATA_HOME/lazertweaks."
+
+        rm "$BINDIR/lazertweaks"
+        print "Removed $BINDIR/lazertweaks."
+    else
+        print "Cancelled."
+    fi
+}
+
 launchOsu()
 {
     readConfig
@@ -56,17 +71,7 @@ case $1 in
     ;;
 
     '--remove')
-        read -p "Are you sure you want to remove $XDG_DATA_HOME/lazertweaks? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            rm -rf "$XDG_DATA_HOME/lazertweaks"
-            print "Removed $XDG_DATA_HOME/lazertweaks."
-
-            rm "$BINDIR/lazertweaks"
-            print "Removed $BINDIR/lazertweaks."
-        else
-            print "Cancelled."
-        fi
+        removeScript
     ;;
 
     *)
