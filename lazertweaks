@@ -57,7 +57,7 @@ removeScript()
 launchOsu()
 {
     readConfig
-    wmTweaks
+    # wmTweaks
 
     print "Launching osu!lazer.."
     exec $PRE_LAUNCH_ARGS "$XDG_DATA_HOME/lazertweaks/osu.AppImage"
