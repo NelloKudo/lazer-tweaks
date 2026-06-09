@@ -8,8 +8,10 @@ export BINDIR="${BINDIR:-$HOME/.local/bin}"
 export EDITOR="${EDITOR:-nano}"
 
 # Default env. vars
-export PIPEWIRE_ALSA="${PIPEWIRE_ALSA:-{ alsa.period-bytes=1024 alsa.periods=3 }}"
 export SDL_VIDEO_DOUBLE_BUFFER=${SDL_VIDEO_DOUBLE_BUFFER:-1}
+
+# Audio: set BASS device period to 128 samples (see config and https://github.com/ppy/osu-framework/pull/6724 for details)
+export OSU_TEMP_TESTING_BASS_CONFIG_DEV_PERIOD=-128
 
 # Upstream source for the lazertweaks script
 UPSTREAM="${UPSTREAM:-https://raw.githubusercontent.com/NelloKudo/lazer-tweaks/main/lazertweaks}"
